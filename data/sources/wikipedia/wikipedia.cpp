@@ -24,9 +24,6 @@ using std::to_string;
 
 #include <limits>
 
-//Interfacing with server
-#include <curl/curl.h>
-
 //For error reporting
 #include <stdio.h>
 
@@ -58,6 +55,33 @@ void create_directory(string directory){
 	char *c = const_cast<char*>(command.c_str());
 	system(c);
 	return;
+}
+
+//Create readme.txt files to hold info
+void create_readme(string parent, string code){
+	if(code=="one"){
+		time_t _tm = time(NULL);
+		struct tm* curtime = localtime(&_tm);
+		string cache_date = "Cache Date "+string(asctime(curtime))+"\n";
+		ofstream file("readme.txt");
+		file<<cache_date;
+		return;
+	}
+	string good = parent+"good/readme.txt";
+	string bad = parent+"bad/readme.txt";
+	string reg = parent+"regular/readme.txt";
+	string redir = parent+"redirect/readme.txt";
+	vector<string> readmes = {good, bad, reg, redir};
+
+	time_t _tm = time(NULL);
+	struct tm* curtime = localtime(&_tm);
+	string cache_date = "Cache Date "+string(asctime(curtime))+"\n";
+
+	for(int i=0; i<readmes.size(); i++){
+		string temp = readmes[i];
+		ofstream file(temp);
+		file<<cache_date;
+	}
 }
 
 //Create readme.txt files to hold info
@@ -239,10 +263,10 @@ public:
 
 	wikiPage(string pagestr);    // Constructor
 	wikiPage(ifstream &wikiFile);// From file constructor
-	wikiPage(string pagestr, bool formatting);
+	wikiPage(string pagestr, bool formatting); //From string (choose formatting)
 	void save(ofstream &file);
 	void saveHTML(ofstream &file);
-	void removeJunk();
+	void removeJunk(); 
 	friend ostream& operator<<(ostream& os, wikiPage& wp);
 };
 
@@ -287,6 +311,8 @@ wikiPage::wikiPage(string pagestr) {
 }
 
 // wikipage constructor
+//if formatting is false then function will remove all formatting
+//if formatting is true then function will leave all formatting
 wikiPage::wikiPage(string pagestr, bool formatting) {
 	//Set the title of the page
 	title = parse(pagestr, "<title>", "</title>");
@@ -514,7 +540,7 @@ void wikiPage::save(ofstream &file){
 	file<<"---> EOA\n";
 }
 
-//Save to HTML format
+//Save to HTML format of website
 void wikiPage::saveHTML(ofstream &file){
 	file<<"<!DOCTYPE html>\n";
 	file<<"<html>\n";
@@ -839,12 +865,12 @@ bool isRequired(wikiPage &temp, vector<string> &titles){
 	return false;
 }
 
-//N articles per file, formatting true = leaving formatting in files
+//New function to only save titles found in vector of required titles
 void compileHTML(string filename, vector<string> titles){
 
 	string folder = "../../../site/wikiclassify/wiki/";
 	string hashfile = "hashfile.txt";
-	bool formatting = false;
+	bool formatting = true;
 
 	create_readme(folder);
 
@@ -866,7 +892,9 @@ void compileHTML(string filename, vector<string> titles){
 
 	string hashOutput;
 
-	while(dataDump.eof()==false and num_done<titles.size()){
+	int num_titles = titles.size();
+
+	while(dataDump.eof()==false and num_done<num_titles){
 		string pagestr;
 		getPage(dataDump, end, pagestr);
 		wikiPage temp(pagestr, formatting);
