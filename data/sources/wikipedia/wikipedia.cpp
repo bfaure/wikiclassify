@@ -1,3 +1,7 @@
+//Written by Brian Faure
+//Tested by Brian Faure
+//Debugged by Brian Faure
+
 #include <iostream>
 using std::cout;
 using std::endl;
